@@ -38,7 +38,7 @@ def get_llm():
     if "GEMINI_API_KEY" in st.secrets:
         logger.info("Anna is using Google Gemini for summarization")
         from langchain_google_genai import ChatGoogleGenerativeAI
-        return ChatGoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=st.secrets["GEMINI_API_KEY"], temperature=0.3, convert_system_message_to_human=True)
+        return ChatGoogleGenerativeAI(model="gemini-1.5-flash-latest", google_api_key=st.secrets["GEMINI_API_KEY"], temperature=0.3)
     elif "OPENAI_API_KEY" in st.secrets:
         logger.info("Anna is using OpenAI for summarization")
         from langchain_openai import ChatOpenAI
