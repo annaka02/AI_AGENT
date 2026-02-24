@@ -43,19 +43,8 @@ def get_llm():
         logger.info("Anna is using OpenAI for summarization")
         from langchain_openai import ChatOpenAI
         return ChatOpenAI(model="gpt-3.5-turbo", api_key=st.secrets["OPENAI_API_KEY"], temperature=0.3)
-    elif "AWS_ACCESS_KEY_ID" in st.secrets and "AWS_SECRET_ACCESS_KEY" in st.secrets:
-        logger.info("Anna is using Amazon Bedrock for summarization")
-        from langchain_aws import ChatBedrock
-        import boto3
-        bedrock_client = boto3.client(
-            service_name='bedrock-runtime',
-            region_name=st.secrets.get("AWS_REGION", "us-east-1"),
-            aws_access_key_id=st.secrets["AWS_ACCESS_KEY_ID"],
-            aws_secret_access_key=st.secrets["AWS_SECRET_ACCESS_KEY"]
-        )
-        return ChatBedrock(client=bedrock_client, model_id="anthropic.claude-3-sonnet-20240229-v1:0", model_kwargs={"temperature": 0.3})
     else:
-        st.error("I need an API key to summarize! Please add GEMINI_API_KEY, OPENAI_API_KEY, or AWS credentials to your Streamlit secrets.")
+        st.error("I need an API key to summarize! Please add GEMINI_API_KEY or OPENAI_API_KEY to your Streamlit secrets.")
         logger.error("No API keys found in secrets")
         return None
 
