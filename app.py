@@ -33,6 +33,32 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("*Created by Anna*")
 
+def get_llm():
+    """Initialize LLM based on available API keys"""
+    if "GEMINI_API_KEY" in st.secrets:
+        logger.info("Anna is using Google Gemini for summarization")
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        return ChatGoogleGenerativeAI(model="gemini-pro", google_api_key=st.secrets["GEMINI_API_KEY"], temperature=0.3)
+    elif "OPENAI_API_KEY" in st.secrets:
+        logger.info("Anna is using OpenAI for summarization")
+        from langchain_openai import ChatOpenAI
+        return ChatOpenAI(model="gpt-3.5-turbo", api_key=st.secrets["OPENAI_API_KEY"], temperature=0.3)
+    elif "AWS_ACCESS_KEY_ID" in st.secrets and "AWS_SECRET_ACCESS_KEY" in st.secrets:
+        logger.info("Anna is using Amazon Bedrock for summarization")
+        from langchain_aws import ChatBedrock
+        import boto3
+        bedrock_client = boto3.client(
+            service_name='bedrock-runtime',
+            region_name=st.secrets.get("AWS_REGION", "us-east-1"),
+            aws_access_key_id=st.secrets["AWS_ACCESS_KEY_ID"],
+            aws_secret_access_key=st.secrets["AWS_SECRET_ACCESS_KEY"]
+        )
+        return ChatBedrock(client=bedrock_client, model_id="anthropic.claude-3-sonnet-20240229-v1:0", model_kwargs={"temperature": 0.3})
+    else:
+        st.error("I need an API key to summarize! Please add GEMINI_API_KEY, OPENAI_API_KEY, or AWS credentials to your Streamlit secrets.")
+        logger.error("No API keys found in secrets")
+        return None
+
 # Main content
 st.title("ANNA - Your Content Summarization Assistant")
 st.markdown("Let me help you digest information quickly and efficiently.")
@@ -55,8 +81,6 @@ with tab1:
             with st.spinner("Anna is reading the article..."):
                 try:
                     logger.info(f"Anna is fetching content from: {url_input}")
-                    
-                    # Import and scrape
                     from newspaper import Article
                     article = Article(url_input)
                     article.download()
@@ -67,39 +91,9 @@ with tab1:
                         logger.error("No text extracted from URL")
                     else:
                         logger.info(f"Anna extracted {len(article.text)} characters from the article")
-                        
-                        # Check for API keys and initialize LLM
-                        api_key = None
-                        llm = None
-                        
-                        if "OPENAI_API_KEY" in st.secrets:
-                            logger.info("Anna is using OpenAI for summarization")
-                            from langchain_openai import ChatOpenAI
-                            api_key = st.secrets["OPENAI_API_KEY"]
-                            llm = ChatOpenAI(model="gpt-3.5-turbo", api_key=api_key, temperature=0.3)
-                        elif "AWS_ACCESS_KEY_ID" in st.secrets and "AWS_SECRET_ACCESS_KEY" in st.secrets:
-                            logger.info("Anna is using Amazon Bedrock for summarization")
-                            from langchain_aws import ChatBedrock
-                            import boto3
-                            
-                            bedrock_client = boto3.client(
-                                service_name='bedrock-runtime',
-                                region_name=st.secrets.get("AWS_REGION", "us-east-1"),
-                                aws_access_key_id=st.secrets["AWS_ACCESS_KEY_ID"],
-                                aws_secret_access_key=st.secrets["AWS_SECRET_ACCESS_KEY"]
-                            )
-                            llm = ChatBedrock(
-                                client=bedrock_client,
-                                model_id="anthropic.claude-3-sonnet-20240229-v1:0",
-                                model_kwargs={"temperature": 0.3}
-                            )
-                        else:
-                            st.error("I need an API key to summarize! Please add OPENAI_API_KEY or AWS credentials to your Streamlit secrets.")
-                            logger.error("No API keys found in secrets")
-                            llm = None
+                        llm = get_llm()
                         
                         if llm:
-                            # Create summary prompt
                             from langchain.prompts import ChatPromptTemplate
                             from langchain.schema.output_parser import StrOutputParser
                             
@@ -115,18 +109,14 @@ with tab1:
                             ])
                             
                             chain = prompt | llm | StrOutputParser()
-                            
                             logger.info("Anna is generating the summary...")
                             summary = chain.invoke({"text": article.text[:8000]})
                             
-                            # Display summary
                             st.success("✅ Summary complete!")
                             st.markdown("### 📋 Summary")
                             st.markdown(summary)
-                            
                             if article.title:
                                 st.markdown(f"**Original Title:** {article.title}")
-                            
                             logger.info("Anna completed the summarization successfully")
                 
                 except ImportError as e:
@@ -151,57 +141,21 @@ with tab2:
             with st.spinner("Anna is reading the PDF..."):
                 try:
                     logger.info(f"Anna is processing PDF: {uploaded_file.name}")
+                    import pdfplumber
                     
-                    # Extract text from PDF
-                    import fitz  # PyMuPDF
-                    
-                    pdf_document = fitz.open(stream=uploaded_file.read(), filetype="pdf")
                     text = ""
-                    
-                    for page_num in range(len(pdf_document)):
-                        page = pdf_document[page_num]
-                        text += page.get_text()
-                    
-                    pdf_document.close()
+                    with pdfplumber.open(uploaded_file) as pdf:
+                        for page in pdf.pages:
+                            text += page.extract_text() or ""
                     
                     if not text.strip():
                         st.error("I couldn't extract any text from that PDF. It might be an image-based PDF that needs OCR.")
                         logger.error("No text extracted from PDF")
                     else:
                         logger.info(f"Anna extracted {len(text)} characters from the PDF")
-                        
-                        # Check for API keys and initialize LLM
-                        api_key = None
-                        llm = None
-                        
-                        if "OPENAI_API_KEY" in st.secrets:
-                            logger.info("Anna is using OpenAI for summarization")
-                            from langchain_openai import ChatOpenAI
-                            api_key = st.secrets["OPENAI_API_KEY"]
-                            llm = ChatOpenAI(model="gpt-3.5-turbo", api_key=api_key, temperature=0.3)
-                        elif "AWS_ACCESS_KEY_ID" in st.secrets and "AWS_SECRET_ACCESS_KEY" in st.secrets:
-                            logger.info("Anna is using Amazon Bedrock for summarization")
-                            from langchain_aws import ChatBedrock
-                            import boto3
-                            
-                            bedrock_client = boto3.client(
-                                service_name='bedrock-runtime',
-                                region_name=st.secrets.get("AWS_REGION", "us-east-1"),
-                                aws_access_key_id=st.secrets["AWS_ACCESS_KEY_ID"],
-                                aws_secret_access_key=st.secrets["AWS_SECRET_ACCESS_KEY"]
-                            )
-                            llm = ChatBedrock(
-                                client=bedrock_client,
-                                model_id="anthropic.claude-3-sonnet-20240229-v1:0",
-                                model_kwargs={"temperature": 0.3}
-                            )
-                        else:
-                            st.error("I need an API key to summarize! Please add OPENAI_API_KEY or AWS credentials to your Streamlit secrets.")
-                            logger.error("No API keys found in secrets")
-                            llm = None
+                        llm = get_llm()
                         
                         if llm:
-                            # Create summary prompt
                             from langchain.prompts import ChatPromptTemplate
                             from langchain.schema.output_parser import StrOutputParser
                             
@@ -217,16 +171,13 @@ with tab2:
                             ])
                             
                             chain = prompt | llm | StrOutputParser()
-                            
                             logger.info("Anna is generating the summary...")
                             summary = chain.invoke({"text": text[:8000]})
                             
-                            # Display summary
                             st.success("✅ Summary complete!")
                             st.markdown("### 📋 Summary")
                             st.markdown(summary)
                             st.markdown(f"**File:** {uploaded_file.name}")
-                            
                             logger.info("Anna completed the summarization successfully")
                 
                 except ImportError as e:
