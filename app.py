@@ -35,12 +35,12 @@ with st.sidebar:
 
 def get_llm():
     """Initialize LLM based on available API keys"""
-    if "GROQ_API_KEY" in st.secrets:
-        logger.info("Anna is using Groq for summarization")
-        from groq import Groq
-        return Groq(api_key=st.secrets["GROQ_API_KEY"])
+    if "XAI_API_KEY" in st.secrets:
+        logger.info("Anna is using xAI for summarization")
+        from openai import OpenAI
+        return OpenAI(api_key=st.secrets["XAI_API_KEY"], base_url="https://api.x.ai/v1")
     else:
-        st.error("I need an API key to summarize! Please add GROQ_API_KEY to your Streamlit secrets.")
+        st.error("I need an API key to summarize! Please add XAI_API_KEY to your Streamlit secrets.")
         logger.error("No API keys found in secrets")
         return None
 
@@ -105,7 +105,7 @@ Keep your tone professional yet approachable.
 Content:
 {text[:15000]}"""
                             response = llm.chat.completions.create(
-                                model="llama-3.3-70b-versatile",
+                                model="grok-beta",
                                 messages=[{"role": "user", "content": prompt_text}],
                                 temperature=0.3
                             )
@@ -169,7 +169,7 @@ Keep your tone professional yet approachable.
 Document:
 {text[:15000]}"""
                             response = llm.chat.completions.create(
-                                model="llama-3.3-70b-versatile",
+                                model="grok-beta",
                                 messages=[{"role": "user", "content": prompt_text}],
                                 temperature=0.3
                             )
