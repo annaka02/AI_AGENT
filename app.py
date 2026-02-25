@@ -39,14 +39,10 @@ def get_llm():
         logger.info("Anna is using Google Gemini for summarization")
         import google.generativeai as genai
         genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-        model = genai.GenerativeModel('gemini-1.5-pro')
+        model = genai.GenerativeModel('gemini-pro')
         return model
-    elif "OPENAI_API_KEY" in st.secrets:
-        logger.info("Anna is using OpenAI for summarization")
-        from langchain_openai import ChatOpenAI
-        return ChatOpenAI(model="gpt-3.5-turbo", api_key=st.secrets["OPENAI_API_KEY"], temperature=0.3)
     else:
-        st.error("I need an API key to summarize! Please add GEMINI_API_KEY or OPENAI_API_KEY to your Streamlit secrets.")
+        st.error("I need an API key to summarize! Please add GEMINI_API_KEY to your Streamlit secrets.")
         logger.error("No API keys found in secrets")
         return None
 
@@ -100,9 +96,7 @@ with tab1:
                         
                         if llm:
                             logger.info("Anna is generating the summary...")
-                            
-                            if "GEMINI_API_KEY" in st.secrets:
-                                prompt_text = f"""You are Anna, a professional AI assistant. Summarize the following content in a clear, organized manner.
+                            prompt_text = f"""You are Anna, a professional AI assistant. Summarize the following content in a clear, organized manner.
 Provide:
 - A brief overview (2-3 sentences)
 - 3-5 key points as bullet points
@@ -112,25 +106,8 @@ Keep your tone professional yet approachable.
 
 Content:
 {text[:15000]}"""
-                                response = llm.generate_content(prompt_text)
-                                summary = response.text
-                            else:
-                                from langchain.prompts import ChatPromptTemplate
-                                from langchain.schema.output_parser import StrOutputParser
-                                
-                                prompt = ChatPromptTemplate.from_messages([
-                                    ("system", """You are Anna, a professional AI assistant. Summarize the following content in a clear, organized manner. 
-                                    Provide:
-                                    - A brief overview (2-3 sentences)
-                                    - 3-5 key points as bullet points
-                                    - A concluding insight
-                                    
-                                    Keep your tone professional yet approachable."""),
-                                    ("user", "Content:\n\n{text}")
-                                ])
-                                
-                                chain = prompt | llm | StrOutputParser()
-                                summary = chain.invoke({"text": text[:15000]})
+                            response = llm.generate_content(prompt_text)
+                            summary = response.text
                             
                             st.success("✅ Summary complete!")
                             st.markdown("### 📋 Summary")
@@ -179,9 +156,7 @@ with tab2:
                         
                         if llm:
                             logger.info("Anna is generating the summary...")
-                            
-                            if "GEMINI_API_KEY" in st.secrets:
-                                prompt_text = f"""You are Anna, a professional AI assistant. Summarize the following document in a clear, organized manner.
+                            prompt_text = f"""You are Anna, a professional AI assistant. Summarize the following document in a clear, organized manner.
 Provide:
 - A brief overview (2-3 sentences)
 - 3-5 key points as bullet points
@@ -191,25 +166,8 @@ Keep your tone professional yet approachable.
 
 Document:
 {text[:15000]}"""
-                                response = llm.generate_content(prompt_text)
-                                summary = response.text
-                            else:
-                                from langchain.prompts import ChatPromptTemplate
-                                from langchain.schema.output_parser import StrOutputParser
-                                
-                                prompt = ChatPromptTemplate.from_messages([
-                                    ("system", """You are Anna, a professional AI assistant. Summarize the following document in a clear, organized manner. 
-                                    Provide:
-                                    - A brief overview (2-3 sentences)
-                                    - 3-5 key points as bullet points
-                                    - A concluding insight
-                                    
-                                    Keep your tone professional yet approachable."""),
-                                    ("user", "Document text:\n\n{text}")
-                                ])
-                                
-                                chain = prompt | llm | StrOutputParser()
-                                summary = chain.invoke({"text": text[:15000]})
+                            response = llm.generate_content(prompt_text)
+                            summary = response.text
                             
                             st.success("✅ Summary complete!")
                             st.markdown("### 📋 Summary")
