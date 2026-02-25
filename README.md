@@ -1,21 +1,19 @@
 # ANNA - Automated Network & Narrative Assistant
 
-Hi! I'm Anna, your AI-powered content summarization assistant. I can help you quickly digest web articles and PDF documents using advanced AI models.
+Hi! I'm Anna, your AI-powered content summarization assistant. I can help you quickly digest web articles and PDF documents using xAI's Grok.
 
 ## Features
 
-- 📰 **URL Summarization**: Paste any article URL and get a concise summary
+- 📰 **URL Summarization**: Paste any URL (blogs, Wikipedia, news, etc.) and get a concise summary
 - 📄 **PDF Summarization**: Upload PDF files and extract key insights
-- 🤖 **AI-Powered**: Uses OpenAI GPT or Amazon Bedrock Claude 3 Sonnet
+- 🤖 **AI-Powered**: Uses xAI Grok-4 for intelligent summarization
 - 📊 **Technical Logs**: View detailed process logs for transparency
 - 🎨 **Clean UI**: Professional Streamlit interface with tabs and organized layout
 
 ## Prerequisites
 
 - Python 3.8 or higher
-- An API key for either:
-  - OpenAI (GPT-3.5 or GPT-4)
-  - Amazon Bedrock (with AWS credentials)
+- An xAI API key from https://console.x.ai
 
 ## Local Installation & Setup
 
@@ -52,18 +50,10 @@ Create a `.streamlit` folder in your project directory and add a `secrets.toml` 
 mkdir .streamlit
 ```
 
-Create `.streamlit/secrets.toml` with one of the following configurations:
+Create `.streamlit/secrets.toml` with your xAI API key:
 
-**Option A: Using OpenAI**
 ```toml
-OPENAI_API_KEY = "sk-your-openai-api-key-here"
-```
-
-**Option B: Using Amazon Bedrock**
-```toml
-AWS_ACCESS_KEY_ID = "your-aws-access-key-id"
-AWS_SECRET_ACCESS_KEY = "your-aws-secret-access-key"
-AWS_REGION = "us-east-1"
+XAI_API_KEY = "xai-your-api-key-here"
 ```
 
 ### 5. Run the Application
@@ -110,18 +100,10 @@ echo ".streamlit/secrets.toml" >> .gitignore
 1. In your Streamlit Cloud dashboard, click on your deployed app
 2. Click the "⋮" menu (three dots) and select "Settings"
 3. Go to the "Secrets" section
-4. Paste your secrets in TOML format:
+4. Paste your xAI API key:
 
-**For OpenAI:**
 ```toml
-OPENAI_API_KEY = "sk-your-openai-api-key-here"
-```
-
-**For Amazon Bedrock:**
-```toml
-AWS_ACCESS_KEY_ID = "your-aws-access-key-id"
-AWS_SECRET_ACCESS_KEY = "your-aws-secret-access-key"
-AWS_REGION = "us-east-1"
+XAI_API_KEY = "xai-your-api-key-here"
 ```
 
 5. Click "Save"
@@ -129,10 +111,10 @@ AWS_REGION = "us-east-1"
 
 ## Usage Guide
 
-### Summarizing a Web Article
+### Summarizing a Web Page
 
 1. Click on the "📰 Summarize Link" tab
-2. Paste the URL of the article you want to summarize
+2. Paste any URL (blog, Wikipedia, news article, documentation, etc.)
 3. Click "Summarize URL"
 4. Wait for Anna to fetch and analyze the content
 5. View your summary with key points and insights
@@ -154,17 +136,23 @@ AWS_REGION = "us-east-1"
 ## Troubleshooting
 
 ### "I need an API key to summarize!"
-- Make sure you've added your API key to `.streamlit/secrets.toml` (local) or Streamlit Cloud secrets
-- Verify the key name matches exactly: `OPENAI_API_KEY` or `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`
+- Make sure you've added your xAI API key to `.streamlit/secrets.toml` (local) or Streamlit Cloud secrets
+- Verify the key name matches exactly: `XAI_API_KEY`
+- Get your free API key at https://console.x.ai
 
-### "I couldn't extract any text from that URL"
-- The website might be behind a paywall
-- The site might require JavaScript rendering (newspaper3k has limitations)
+### "I couldn't extract enough text from that URL"
+- The website might be blocking scrapers
+- The site might require JavaScript rendering
 - Try a different URL or use the PDF upload feature
 
 ### "I couldn't extract any text from that PDF"
 - The PDF might be image-based and require OCR
 - Try converting the PDF to a text-based format first
+
+### "Error code: 429 - credits exhausted"
+- You've used all available xAI credits
+- Purchase more credits at https://console.x.ai
+- Or wait for your monthly limit to reset
 
 ### Import Errors
 - Ensure all dependencies are installed: `pip install -r requirements.txt`
@@ -184,10 +172,9 @@ AI_AGENT/
 ## Technologies Used
 
 - **Streamlit**: Web application framework
-- **LangChain**: LLM orchestration framework
-- **OpenAI / Amazon Bedrock**: AI models for summarization
-- **newspaper3k**: Web article scraping
-- **PyMuPDF**: PDF text extraction
+- **xAI Grok-4**: AI model for summarization
+- **BeautifulSoup**: Universal web scraping
+- **pdfplumber**: PDF text extraction
 - **Python logging**: Process tracking and debugging
 
 ## Security Notes
@@ -203,7 +190,7 @@ If you encounter any issues or have questions, check the Technical Logs in the a
 
 ## License
 
-This project is open source and available for personal and commercial use.
+This project is open source and available for personal use.
 
 ---
 
