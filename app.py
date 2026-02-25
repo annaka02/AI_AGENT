@@ -35,14 +35,12 @@ with st.sidebar:
 
 def get_llm():
     """Initialize LLM based on available API keys"""
-    if "GEMINI_API_KEY" in st.secrets:
-        logger.info("Anna is using Google Gemini for summarization")
-        import google.generativeai as genai
-        genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-        model = genai.GenerativeModel('models/gemini-1.5-flash')
-        return model
+    if "GROQ_API_KEY" in st.secrets:
+        logger.info("Anna is using Groq for summarization")
+        from groq import Groq
+        return Groq(api_key=st.secrets["GROQ_API_KEY"])
     else:
-        st.error("I need an API key to summarize! Please add GEMINI_API_KEY to your Streamlit secrets.")
+        st.error("I need an API key to summarize! Please add GROQ_API_KEY to your Streamlit secrets.")
         logger.error("No API keys found in secrets")
         return None
 
@@ -106,8 +104,12 @@ Keep your tone professional yet approachable.
 
 Content:
 {text[:15000]}"""
-                            response = llm.generate_content(prompt_text)
-                            summary = response.text
+                            response = llm.chat.completions.create(
+                                model="llama-3.3-70b-versatile",
+                                messages=[{"role": "user", "content": prompt_text}],
+                                temperature=0.3
+                            )
+                            summary = response.choices[0].message.content
                             
                             st.success("✅ Summary complete!")
                             st.markdown("### 📋 Summary")
@@ -166,8 +168,12 @@ Keep your tone professional yet approachable.
 
 Document:
 {text[:15000]}"""
-                            response = llm.generate_content(prompt_text)
-                            summary = response.text
+                            response = llm.chat.completions.create(
+                                model="llama-3.3-70b-versatile",
+                                messages=[{"role": "user", "content": prompt_text}],
+                                temperature=0.3
+                            )
+                            summary = response.choices[0].message.content
                             
                             st.success("✅ Summary complete!")
                             st.markdown("### 📋 Summary")
