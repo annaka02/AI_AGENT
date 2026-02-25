@@ -39,7 +39,7 @@ def get_llm():
         logger.info("Anna is using Google Gemini for summarization")
         import google.generativeai as genai
         genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('models/gemini-1.5-flash')
         return model
     else:
         st.error("I need an API key to summarize! Please add GEMINI_API_KEY to your Streamlit secrets.")
