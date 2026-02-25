@@ -39,7 +39,7 @@ def get_llm():
         logger.info("Anna is using Google Gemini for summarization")
         import google.generativeai as genai
         genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-1.5-pro')
         return model
     elif "OPENAI_API_KEY" in st.secrets:
         logger.info("Anna is using OpenAI for summarization")
