@@ -70,16 +70,30 @@ with tab1:
             with st.spinner("Anna is reading the article..."):
                 try:
                     logger.info(f"Anna is fetching content from: {url_input}")
-                    from newspaper import Article
-                    article = Article(url_input)
-                    article.download()
-                    article.parse()
+                    import requests
+                    from bs4 import BeautifulSoup
                     
-                    if not article.text:
-                        st.error("I couldn't extract any text from that URL. It might be behind a paywall or require JavaScript.")
-                        logger.error("No text extracted from URL")
+                    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+                    response = requests.get(url_input, headers=headers, timeout=10)
+                    response.raise_for_status()
+                    
+                    soup = BeautifulSoup(response.content, 'html.parser')
+                    
+                    # Remove script and style elements
+                    for script in soup(["script", "style", "nav", "footer", "header"]):
+                        script.decompose()
+                    
+                    # Get text
+                    text = soup.get_text(separator='\n', strip=True)
+                    # Clean up whitespace
+                    lines = (line.strip() for line in text.splitlines())
+                    text = '\n'.join(line for line in lines if line)
+                    
+                    if not text or len(text) < 100:
+                        st.error("I couldn't extract enough text from that URL. The site might be blocking me or require JavaScript.")
+                        logger.error("Insufficient text extracted from URL")
                     else:
-                        logger.info(f"Anna extracted {len(article.text)} characters from the article")
+                        logger.info(f"Anna extracted {len(text)} characters from the page")
                         llm = get_llm()
                         
                         if llm:
@@ -87,32 +101,34 @@ with tab1:
                             from langchain.schema.output_parser import StrOutputParser
                             
                             prompt = ChatPromptTemplate.from_messages([
-                                ("system", """You are Anna, a professional AI assistant. Summarize the following article in a clear, organized manner. 
+                                ("system", """You are Anna, a professional AI assistant. Summarize the following content in a clear, organized manner. 
                                 Provide:
                                 - A brief overview (2-3 sentences)
                                 - 3-5 key points as bullet points
                                 - A concluding insight
                                 
                                 Keep your tone professional yet approachable."""),
-                                ("user", "Article text:\n\n{text}")
+                                ("user", "Content:\n\n{text}")
                             ])
                             
                             chain = prompt | llm | StrOutputParser()
                             logger.info("Anna is generating the summary...")
-                            summary = chain.invoke({"text": article.text[:8000]})
+                            summary = chain.invoke({"text": text[:15000]})
                             
                             st.success("✅ Summary complete!")
                             st.markdown("### 📋 Summary")
                             st.markdown(summary)
-                            if article.title:
-                                st.markdown(f"**Original Title:** {article.title}")
+                            st.markdown(f"**Source:** {url_input}")
                             logger.info("Anna completed the summarization successfully")
                 
+                except requests.exceptions.RequestException as e:
+                    st.error(f"I couldn't access that URL. The site might be blocking requests or the URL is invalid. Error: {str(e)}")
+                    logger.error(f"Request error: {str(e)}")
                 except ImportError as e:
                     st.error(f"I'm missing a required library: {str(e)}. Please check the requirements.txt file.")
                     logger.error(f"Import error: {str(e)}")
                 except Exception as e:
-                    st.error(f"I hit a snag while processing that URL. The site might be blocking me, or there could be a paywall. Error: {str(e)}")
+                    st.error(f"I hit a snag while processing that URL. Error: {str(e)}")
                     logger.error(f"Error processing URL: {str(e)}")
 
 # Tab 2: PDF Summarization
