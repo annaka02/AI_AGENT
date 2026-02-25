@@ -105,7 +105,7 @@ Keep your tone professional yet approachable.
 Content:
 {text[:15000]}"""
                             response = llm.chat.completions.create(
-                                model="grok-2-1212",
+                                model="grok-4-latest",
                                 messages=[{"role": "user", "content": prompt_text}],
                                 temperature=0.3
                             )
@@ -169,7 +169,7 @@ Keep your tone professional yet approachable.
 Document:
 {text[:15000]}"""
                             response = llm.chat.completions.create(
-                                model="grok-2-1212",
+                                model="grok-4-latest",
                                 messages=[{"role": "user", "content": prompt_text}],
                                 temperature=0.3
                             )
